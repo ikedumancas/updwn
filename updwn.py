@@ -16,12 +16,17 @@ from s3handler import S3Handler
     metavar='<path>',
     help='Download server <path> to current directory'
 )
-def main(upload, download):
+@click.option(
+    '--list',
+    'list_objects',
+    is_flag=True,
+    help='List all files in the server.'
+)
+def main(upload, download, list_objects):
     """
     This script can upload and download file to the server.
     """
-
-    if upload == (None, None) and download is None:
+    if upload == (None, None) and download is None and not list_objects:
         click.echo('Try "updwn --help" for help.', err=True)
         return
 
@@ -32,12 +37,32 @@ def main(upload, download):
         click.echo("Uploading file %s to %s" % (
             file_path, upload_path if not upload_to_root else 'root directory'))
 
-        success = handler.upload_file(upload_path, file_path)
+        success, err = handler.upload_file(upload_path, file_path)
         msg = "Upload success!!" if success else "Upload Failed :("
+        if not success:
+            click.echo(err, err=True)
         click.echo(msg, err=not success)
 
     if download is not None:
         click.echo("Downloading file %s to current directory" % download)
-        success = handler.download_file(download)
+        success, err = handler.download_file(download)
         msg = "Download success!!" if success else "Download Failed :("
+        if not success:
+            click.echo(err, err=True)
         click.echo(msg, err=not success)
+
+    if list_objects:
+        click.echo('Getting list of files in our server.')
+        next_token = ''
+        while True:
+            success, err, result = handler.list_all_files(next_token)
+            if not success:
+                click.echo(err, err=True)
+                return
+            for content in result['contents']:
+                click.echo(content['Key'])
+            if result['next_token'] and click.confirm('Get next page?'):
+                next_token = result['next_token']
+            else:
+                break
+        click.echo('Listing files done.')
