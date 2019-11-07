@@ -27,6 +27,7 @@ updown --list
 1. Python 3.x
 2. pip
 
-# How to Install for development:
+# How to Install:
 1. Run the command below:
-    > pip install --editable .
+    > pip install -e .
+2. Edit your `config.json` file with your own values.
