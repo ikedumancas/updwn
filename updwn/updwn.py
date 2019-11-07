@@ -1,6 +1,6 @@
 import click
 
-from s3handler import S3Handler
+from .s3handler import S3Handler
 
 
 @click.command()
